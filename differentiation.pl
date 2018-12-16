@@ -53,8 +53,8 @@ derivative(F * G, V, Res) :-
 
 % (f^g)' = f^(g-1)*(gf' + g'f logf) 
 derivative(F ^ G, V, Res) :-
-    derivative(F, V, Fdiff),
-    derivative(G, V, Gdiff),
+	derivative(F, V, Fdiff),
+	derivative(G, V, Gdiff),
 	sub(G_1, G, 1),
 	mul(GF, G, Fdiff),
 	mul(FG, Gdiff, F),
@@ -75,13 +75,13 @@ derivative(F / G, V, Res) :-
 
 %functions derivative
 
-derivative(ln(F), V, Res) :-
+derivative(log(F), V, Res) :-
 	derivative(F, V, Fdiff),
 	div(Res, (Fdiff), (F)).
 
 derivative(log(A, F), V, Res) :-
 	number(A), derivative(F, V, Fdiff),
-	mul(B, F, ln(A)),
+	mul(B, F, log(A)),
 	div(Res, (Fdiff), B).
 
 derivative(exp(F), V, Res) :-
@@ -152,12 +152,67 @@ derivative(arccsc(F), V, Res) :-
 	div(C, (Fdiff), B),
 	mul(Res, -1, C).
 
-% TODO:?
-% (defn sinh [x] (Math/sinh x))
-% (defn cosh [x] (Math/cosh x))
-% (defn tgh [x] (Math/tanh x))
-% (defn ctgh [x] (/ (cosh x) (sinh x)))
-% (defn sech [x] (/ 1 (cosh x)))
-% (defn csch [x] (/ 1 (sinh x)))
+derivative(sinh(F), V, Res) :-
+	derivative(F, V, Fdiff),
+	mul(Res, Fdiff, cosh(F)).
 
-%TODO: value for given x
+derivative(cosh(F), V, Res) :-
+	derivative(F, V, Fdiff),
+	mul(Res, Fdiff, sinh(F)).
+
+derivative(tanh(F), V, Res) :-
+	derivative(F, V, Fdiff),
+	mul(Res, Fdiff, sech(F)^2).
+
+derivative(ctgh(F), V, Res) :-
+	derivative(F, V, Fdiff),
+	mul(A, Fdiff, -1),
+	mul(Res, A, csch(F)^2).
+
+derivative(csch(F), V, Res) :-
+	derivative(F, V, Fdiff),
+	mul(A, Fdiff, -1),
+	mul(B, ctgh(F), csch(F)),
+	mul(Res, A, B).
+
+derivative(sech(F), V, Res) :-
+	derivative(F, V, Fdiff),
+	mul(A, Fdiff, -1),
+	mul(B, sech(F), tanh(F)),
+	mul(Res, A, B).
+
+% Eval predicates
+
+eval(F + G, Vars, Res) :- eval(F, Vars, FV), eval(G, Vars, GV), Res is FV + GV.
+eval(F - G, Vars, Res) :- eval(F, Vars, FV), eval(G, Vars, GV), Res is FV - GV.
+eval(F * G, Vars, Res) :- eval(F, Vars, FV), eval(G, Vars, GV), Res is FV * GV.
+eval(F ^ G, Vars, Res) :- eval(F, Vars, FV), eval(G, Vars, GV), Res is FV ^ GV.
+eval(F / G, Vars, Res) :- eval(F, Vars, FV), eval(G, Vars, GV), Res is FV / GV.
+% functions eval
+eval(log(F), Vars, Res) :- eval(F, Vars, FV), Res is log(FV).
+eval(exp(F), Vars, Res) :- eval(F, Vars, FV), Res is exp(FV).
+eval(sin(F), Vars, Res) :- eval(F, Vars, FV), Res is sin(FV).
+eval(cos(F), Vars, Res) :- eval(F, Vars, FV), Res is cos(FV).
+eval(tan(F), Vars, Res) :- eval(F, Vars, FV), Res is tan(FV).
+eval(ctg(F), Vars, Res) :- eval(F, Vars, FV), Res is 1/tan(FV).
+eval(sec(F), Vars, Res) :- eval(F, Vars, FV), Res is 1/cos(FV).
+eval(csc(F), Vars, Res) :- eval(F, Vars, FV), Res is 1/sin(FV).
+eval(arcsin(F), Vars, Res) :- eval(F, Vars, FV), Res is asin(FV).
+eval(arccos(F), Vars, Res) :- eval(F, Vars, FV), Res is acos(FV).
+eval(acrtan(F), Vars, Res) :- eval(F, Vars, FV), Res is atan(FV).
+eval(arcctg(F), Vars, Res) :- eval(F, Vars, FV), Res is atan(1/FV).
+eval(arcsec(F), Vars, Res) :- eval(F, Vars, FV), Res is acos(1/FV).
+eval(arccsc(F), Vars, Res) :- eval(F, Vars, FV), Res is asin(1/FV).
+eval(sinh(F), Vars, Res) :- eval(F, Vars, FV), Res is sinh(FV).
+eval(cosh(F), Vars, Res) :- eval(F, Vars, FV), Res is cosh(FV).
+eval(tanh(F), Vars, Res) :- eval(F, Vars, FV), Res is tanh(FV).
+eval(ctgh(F), Vars, Res) :- eval(F, Vars, FV), Res is 1/tanh(FV).
+eval(sech(F), Vars, Res) :- eval(F, Vars, FV), Res is 1/cosh(FV).
+eval(csch(F), Vars, Res) :- eval(F, Vars, FV), Res is 1/sinh(FV).
+eval(Num, _, Num) :- number(Num).
+eval(Var, Vars, Value) :- atom(Var), member(Var/Value, Vars).
+
+
+eval_deriv(F, Var, Vars, Res, Val) :-
+	derivative(F, Var, Res),
+	eval(Res, Vars, Val).
