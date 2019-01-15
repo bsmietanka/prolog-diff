@@ -1,5 +1,20 @@
-% HELPER METHODS
+% PROLOG DIFFERENTIATE RULES DATABASE
 
+% Usage examples:
+% derivative predicate
+% derivative(log(tan(x)), x, Res).
+% derivative(sin(cos(log(x))), x, Res).
+% After unification Res will be equal to derivative of passed function
+
+% eval_deriv predicate
+% eval_deriv(log(tan(x)), x, [x/1], Res, Val).
+% eval_deriv(exp(log(sin(x+c))), x, [x/1,c/2], Res, Val).
+% After unification Res will be equal to derivative of passed function
+% and Val will be equal to value of derivative for x = 1.
+% values for different variables can be passed as element of a list using specified
+% format [variable_name1/value1, variable_name2/value2]
+
+% HELPER METHODS
 sum(X, X, 0).
 sum(X, 0, X).
 sum(Res, X, Y) :- number(X), number(Y), Res is X + Y.
@@ -27,7 +42,6 @@ div(Res, X, Y) :- number(X), number(Y), Res is X / Y.
 div((X) / (Y), X, Y).
 
 % DERIVATIVE
-
 derivative(F, _, 0) :- number(F).
 
 derivative(F, V, 0) :- atom(F), F \== V.
@@ -73,8 +87,7 @@ derivative(F / G, V, Res) :-
 	sub(D, A, B),
 	div(Res, (D), (C)).
 
-%functions derivative
-
+% functions derivative
 derivative(log(F), V, Res) :-
 	derivative(F, V, Fdiff),
 	div(Res, (Fdiff), (F)).
@@ -182,7 +195,6 @@ derivative(sech(F), V, Res) :-
 	mul(Res, A, B).
 
 % Eval predicates
-
 eval(F + G, Vars, Res) :- eval(F, Vars, FV), eval(G, Vars, GV), Res is FV + GV.
 eval(F - G, Vars, Res) :- eval(F, Vars, FV), eval(G, Vars, GV), Res is FV - GV.
 eval(F * G, Vars, Res) :- eval(F, Vars, FV), eval(G, Vars, GV), Res is FV * GV.
@@ -211,7 +223,6 @@ eval(sech(F), Vars, Res) :- eval(F, Vars, FV), Res is 1/cosh(FV).
 eval(csch(F), Vars, Res) :- eval(F, Vars, FV), Res is 1/sinh(FV).
 eval(Num, _, Num) :- number(Num).
 eval(Var, Vars, Value) :- atom(Var), member(Var/Value, Vars).
-
 
 eval_deriv(F, Var, Vars, Res, Val) :-
 	derivative(F, Var, Res),
